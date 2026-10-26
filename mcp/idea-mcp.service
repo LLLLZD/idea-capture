@@ -1,0 +1,16 @@
+[Unit]
+Description=idea-speakr MCP server (read-only over Speakr)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/mcp
+EnvironmentFile=%h/mcp/mcp.env
+ExecStart=%h/mcp-venv/bin/python %h/mcp/idea_mcp.py
+Restart=always
+RestartSec=3
+StandardOutput=append:%h/mcp/mcp.log
+StandardError=append:%h/mcp/mcp.log
+
+[Install]
+WantedBy=default.target

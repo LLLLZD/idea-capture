@@ -1,0 +1,4 @@
+# 这个仓库里没有需要保留 CRLF 的东西；统一 LF，避免 Windows 上改一次全变 diff
+* text=auto eol=lf
+*.png binary
+*.jpg binary

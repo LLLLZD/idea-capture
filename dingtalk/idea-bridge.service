@@ -1,0 +1,17 @@
+[Unit]
+Description=Speakr ideas bridge: finished summary -> DingTalk doc + private link
+After=network-online.target
+
+[Service]
+Type=simple
+# %h 是 systemd 的家目录说明符；这里不能写 ~，systemd 不展开波浪号。
+WorkingDirectory=%h/bridge
+EnvironmentFile=%h/bridge/bridge.env
+ExecStart=/usr/bin/python3 %h/bridge/bridge.py
+Restart=always
+RestartSec=10
+StandardOutput=append:%h/bridge/bridge.log
+StandardError=append:%h/bridge/bridge.log
+
+[Install]
+WantedBy=default.target

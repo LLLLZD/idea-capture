@@ -1,0 +1,12 @@
+serverAddr = "frps.example.com"
+serverPort = 7000
+auth.method = "token"
+auth.token = "<FRPS_TOKEN>"
+transport.tls.enable = true
+
+[[proxies]]
+name = "idea-mcp"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 8891
+remotePort = 8891

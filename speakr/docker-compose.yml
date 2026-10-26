@@ -1,0 +1,21 @@
+# Speakr 本体
+# 用法：cp speakr.env.template speakr.env（改好再起，含 SECRET_KEY 和两个上游地址）
+#       docker compose up -d
+#
+# lite 镜像不含 PyTorch（975 MB vs 4.4 GB）；语义检索退化为文本检索，其余功能不变。
+# 用 host 网络：ASR / LLM 通常只听宿主回环（本机或隧道），桥接网络访问不到。
+# 若你的 ASR/LLM 是公网可达地址，可以删掉 network_mode，改成 ports: ["8899:8899"]。
+services:
+  app:
+    image: learnedmachine/speakr:lite
+    container_name: speakr
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - speakr.env
+    environment:
+      - LOG_LEVEL=INFO
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./uploads:/data/uploads
+      - ./instance:/data/instance

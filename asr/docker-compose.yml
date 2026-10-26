@@ -1,0 +1,37 @@
+# ASR 服务：OpenAI 兼容 POST /v1/audio/transcriptions
+# 用法：docker compose up -d --build（首次会下模型，Nano + VAD 约 2.1 GB）
+#
+# 换基座镜像：BASE=pytorch/pytorch:<cuda runtime tag> docker compose build
+services:
+  asr:
+    build:
+      context: .
+      args:
+        BASE: ${BASE:-asr-base:pinned}
+    image: asr-funasr:v2
+    container_name: asr-funasr
+    restart: unless-stopped
+    shm_size: 2gb
+    ports:
+      # 默认只监听回环：调用方（Speakr）与它同机，或由调用方自己解决跨机。
+      # 要跨机调用改成 "8030:8000" 并在前面加鉴权，见 README「跨机调用」。
+      - "127.0.0.1:8030:8000"
+    volumes:
+      # 模型权重落在宿主机，重建容器不用重下
+      - ./models:/models/ms
+    environment:
+      - MODELSCOPE_CACHE=/models/ms
+    healthcheck:
+      # 镜像里没有 curl，用 python 打 /health
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5).status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

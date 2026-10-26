@@ -1,0 +1,18 @@
+# 临时脚本/探针
+.dsh-tmp/
+
+# 真实配置（模板是 *.template，会提交）
+*.env
+!**.env.template
+
+# 本地单测（含自有归档内容，不入库）
+mcp/test/
+
+# 运行时产出
+models/
+uploads/
+instance/
+*.log
+__pycache__/
+*.pyc
+.venv/
