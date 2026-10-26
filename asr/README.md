@@ -1,11 +1,14 @@
 # asr · 把转写做成一个 OpenAI 兼容服务
 
-一个盒子：丢进去一个音频文件，出来中文文本。协议是 OpenAI 的 `POST /v1/audio/transcriptions`，
-所以 Speakr 能接它，任何别的客户端也能接它——这两件事之间没有耦合。
+一个盒子：丢进去一个音频文件，出来中文文本。
+
+协议是 OpenAI 的 `POST /v1/audio/transcriptions`，所以 Speakr 能接它，任何别的客户端也能接它——这两件事之间没有耦合。
 
 引擎是 **FunASR**（阿里开源）+ `fun-asr-nano`，跑在我们自己的机器上。
 
 ## 为什么不用现成的云端转写
+
+先看结论：**转写是整条链的地基，地基不能有概率性错误。**
 
 拿同一段 201 秒的中文口述（技术推演，中英混说）逐个试过：
 
@@ -20,10 +23,10 @@
 
 1. **Whisper 系的「广告」不是壳的问题**。那句套话来自训练数据里的频道口播，遇到静音或音乐段就复读，
    换封装、换代理都没用，只能换模型。我方评测就是在别人的壳上撞到的。
-2. **确定性比聪明更重要**。同一个文件连发 10 次，聚合网关返回四种结果（中文/英文/空文本/格式错误），
-   而且都带 HTTP 200。转写是整条链的地基，地基不能四分之一概率编造。
+2. **确定性比聪明更重要**。同一个文件连发 10 次，聚合网关返回四种结果（中文 / 英文 / 空文本 / 格式错误），
+   而且都带 HTTP 200。四分之一概率编造，这个不能用。
 
-SenseVoice 比 Nano 快 8 倍但错词密集，长推演里的专有名词经不起这个，所以我们选了 Nano。
+SenseVoice 比 Nano 快 8 倍，但错词密集——长推演里的专有名词经不起这个，所以我们选了 Nano。
 你要速度可以自己改 `--model sensevoice`。
 
 ## 部署
@@ -63,8 +66,8 @@ TRANSCRIPTION_API_KEY=not-needed      # 本服务不鉴权，但该连接器校�
 TRANSCRIPTION_MODEL=fun-asr-nano
 ```
 
-**不要写 `ASR_BASE_URL`**——那个变量走的是 Speakr 的另一套连接器（`asr_endpoint`），
-协议不是 OpenAI 这套，接不上。上游代码：`src/services/transcription/registry.py:406`（openai_whisper）与 `:242`（asr_endpoint）。
+**不要写 `ASR_BASE_URL`**——那个变量走的是 Speakr 的另一套连接器（`asr_endpoint`），协议不是 OpenAI 这套，接不上。
+上游代码：`src/services/transcription/registry.py:406`（openai_whisper）与 `:242`（asr_endpoint）。
 
 已验证它容忍 Speakr 会发的额外字段（`prompt` / `hotwords` / `temperature` / `language` 全部 200），
 带不带 `Authorization` 头都行。`/v1/models` 还会列出 sensevoice / paraformer / moss-transcribe-diarize，
@@ -74,8 +77,8 @@ TRANSCRIPTION_MODEL=fun-asr-nano
 
 默认只绑 `127.0.0.1`，够用且安全。Speakr 在另一台机器时，任选一条：
 
-- **SSH 隧道**（我们用的）：Speakr 那侧 `ssh -N -L 8030:127.0.0.1:8030 <asr-host>`，配置照旧写回环。
-- **反代 + key**：把端口暴露出去之前先加一层鉴权，这个服务本身没有鉴权。
+1. **SSH 隧道**（我们用的）：Speakr 那侧 `ssh -N -L 8030:127.0.0.1:8030 <asr-host>`，配置照旧写回环。
+2. **反代 + key**：把端口暴露出去之前先加一层鉴权，这个服务本身没有鉴权。
 
 别直接把 8030 开到公网——那等于给别人免费 GPU。
 

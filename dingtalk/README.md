@@ -11,15 +11,17 @@
 ## 为什么是轮询而不是 webhook
 
 Speakr 自带 webhook（`recording.summary.completed`），但投递带 SSRF 防护，回环和私网地址一律拒绝
-（`src/services/webhook_dispatch.py`）。桥接和 Speakr 同机，想用 webhook 就得先给内部服务开一个公网入口。
+（`src/services/webhook_dispatch.py`）。
+
+桥接和 Speakr 同机，想用 webhook 就得先给内部服务开一个公网入口——**为了一条通知开公网，不划算**。
 
 轮询只发出站请求：不开端口、不改反代、不扩大攻击面。代价是最多晚 `POLL_SECONDS` 秒，
 以及失败摘要不会推送（只推成功出稿的）。
 
 ## 依赖
 
-1. Speakr 在跑，且有一把 **read** 权限的 API token。
-2. `dws` 二进制 + 一次个人授权（`dws auth login --device`，30 天 refresh token 自动续期）。
+1. Speakr 在跑，且有一把 **read** 权限的 API token；
+2. `dws` 二进制 + 一次个人授权（`dws auth login --device`，30 天 refresh token 自动续期）；
 3. 一个目标文件夹的 nodeId（比如「我的文档 / IDEA」）。
 
 ## 部署
@@ -67,11 +69,12 @@ env 文件由 systemd 读取，**里面的 `~` 不会被展开**，需要绝对�
 
 链路上只有两处跟钉钉有关，都在 `bridge.py` 里：
 
-- `dws()` —— 调 CLI 的那个包装（建文档、取链接、发单聊）；
-- `publish(rec)` —— 决定「一篇稿要做什么」，现在做的是「建文档 → 取 docUrl → 发链接」。
+1. `dws()` —— 调 CLI 的那个包装（建文档、取链接、发单聊）；
+2. `publish(rec)` —— 决定「一篇稿要做什么」，现在做的是「建文档 → 取 docUrl → 发链接」。
 
-换平台就改这两处，其余（轮询、去重、状态文件、日志）不用动。去重键是
-`recording_id + summary 哈希`：重新出稿会再推一次，只改标题不会。
+换平台就改这两处，其余（轮询、去重、状态文件、日志）不用动。
+
+去重键是 `recording_id + summary 哈希`：重新出稿会再推一次，只改标题不会。
 
 ## 已知取舍
 
