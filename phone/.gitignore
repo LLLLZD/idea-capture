@@ -1,0 +1,14 @@
+# Gradle / Kotlin
+.gradle/
+build/
+.kotlin/
+local.properties
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+DerivedData/
+Pods/
+
+# 其它
+captures/

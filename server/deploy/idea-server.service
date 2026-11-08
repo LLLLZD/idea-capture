@@ -1,0 +1,16 @@
+[Unit]
+Description=idea-capture server
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/idea-speakr/idea-server/server
+EnvironmentFile=/home/idea-speakr/.config/idea-server/env
+ExecStart=/home/idea-speakr/idea-server/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8892 --workers 1
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

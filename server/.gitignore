@@ -1,0 +1,15 @@
+# 运行环境
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# 真实配置（模板提交 *.template）
+*.env
+!*env.template
+!*.env.template
+
+# 运行时产出
+*.log
+data/
+mcp/test/
